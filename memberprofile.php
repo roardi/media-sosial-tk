@@ -25,6 +25,11 @@
 			$postid = $_POST['ucantseeme'];
 			mysqli_query($con,"INSERT INTO postcomments(postid,memberid,date,comment) VALUE ('$postid','$userid',NOW(),'$comment')")or die(mysqli_error());
 		}
+		if(isset($_POST['status'])){
+			$status = $_POST['accept'];
+			$postid = $_POST['cantseeme'];
+			mysqli_query($con,"UPDATE groupposts SET status='$status' WHERE grouppost_id='$postid'")or die(mysqli_error());
+		}
 ?>
 
 <div class="art-content-layout">
@@ -73,11 +78,10 @@
 					echo "<center><img src='image/members/".$getpic['photo']."' width='130px' height='230px' alt='Image cannot be dispalyed'></center>";
 					?>
 		
-					<p align='left'><a href="userprofiletest.php?id=<?php echo $id; ?>" style="text-decoration:none;"><?php echo $row['firstname']." ".$row['lastname'];?></a></p>
+					<p align='left'><a href="memberprofile.php?id=<?php echo $userid; ?>" style="text-decoration:none;"><?php echo $row['firstname']." ".$row['lastname'];?></a></p>
 					<p align='left'><a href="infofriend.php?id=<?php echo $userid; ?>" style="text-decoration:none;" rel='facebox' >Info</a></p>
 					<p align='left'><a href="photo1.php?id=<?php echo $userid; ?>" style="text-decoration:none;">Photos of <?php echo $row['firstname'];?></a></p>
-					<p align='left'><a href="userprofiletest.php?id=<?php echo $id; ?>" style="text-decoration:none;" >Wall</a></p>
-					<p align='left'><a href="sendfriend.php?id=<?php echo $id; ?>" style="text-decoration:none;" >Send a message</a></p> 
+					<p align='left'><a href="mails.php?id=<?php echo $userid; ?>" style="text-decoration:none;" >Send a message</a></p> 
 					
                     <div class="cleared"></div>
                     </div>
@@ -118,19 +122,19 @@
 								$myfriend = $row['member_id'];
 								$member_id=$_SESSION['member_id'];
 								
-									if($myfriend == $member_id){
+									if($myfriend == $userid){
 									
 										$myfriend1 = $row['friends_with'];
 										$friends = mysqli_query($con,"SELECT * FROM members WHERE member_id = '$myfriend1'")or die(mysqli_error());
 										$friendsa = mysqli_fetch_array($friends);
 									
-									echo '<li> <a href=userprofiletest.php?id='.$friendsa["member_id"].' style="text-decoration:none;"><img src="image/members/'. $friendsa['photo'].'" height="50" width="50"><br>'.$friendsa['firstname'].' '.$friendsa['lastname'].' </a> </li>';
+									echo '<li> <a href=infofriend.php?id='.$friendsa["member_id"].' rel="facebox" style="text-decoration:none;"><img src="image/members/'. $friendsa['photo'].'" height="50" width="50"><br>'.$friendsa['firstname'].' '.$friendsa['lastname'].' </a> </li>';
 									}else{
 										$myfriend1 = $row['member_id'];
 										$friends = mysqli_query($con,"SELECT * FROM members WHERE member_id = '$myfriend1'")or die(mysqli_error());
 										$friendsa = mysqli_fetch_array($friends);
 										
-										echo '<li> <a href=userprofiletest.php?id='.$friendsa["member_id"].' style = "text-decoration:none;"><img src="image/members/'. $friendsa['photo'].'" height="50" width="50"><br>'.$friendsa['firstname'].' '.$friendsa['lastname'].' </a></li>';
+										echo '<li> <a href=infofriend.php?id='.$friendsa["member_id"].' rel="facebox" style = "text-decoration:none;"><img src="image/members/'. $friendsa['photo'].'" height="50" width="50"><br>'.$friendsa['firstname'].' '.$friendsa['lastname'].' </a></li>';
 									}
 								}
 								}else{
@@ -176,10 +180,11 @@
 							<h2 class="art-postheader">
 							</h2>
 						<div class="cleared"></div>
-							<div><form method='post' action='test.php'>
+							<div><form method='post' action=''>
 							<?php 
 									
 									$post = mysqli_query($con,"SELECT * FROM groupposts WHERE group_id = '$id' AND member_id = '$userid' ORDER by date DESC")or die(mysqli_error());
+									echo "<table>";
 									while($row = mysqli_fetch_array($post)){
 										$id = $row['member_id'];
 										$hu_u = mysqli_query($con,"SELECT * FROM members WHERE member_id = '$id'")or die(mysqli_error());
@@ -199,18 +204,42 @@
 										}
 										$allcounts = $counterss;
 										
-										echo "<input type='hidden' value='".$row['grouppost_id']."' name='cantseeme'/>
+										echo "<tr><td><input type='hidden' value='".$row['grouppost_id']."' name='cantseeme'/>
 											<div>
-												<div class='picofjoke'><img src='image/members/".$rows['photo']."' width='50' height ='50' alt=''/>".$rows['firstname'].",</div><div class = 'postcon'><br />
-											".$row['posts']."<br /><br /><strong>Last</strong> ".$row['date']."<hr /><a href='seeall.php?id=".$row['grouppost_id']."' rel='facebox' style='text-decoration:none;'>Thumbs up (".$allcounts.")</a> <a href='groupcomment.php?id=".$row['grouppost_id']."' rel='facebox' style='text-decoration:none;'>Comments(".$allcount.")</a>
-											<div style='float:right;'><a href='deletepostprofile.php?post_id=".$row['grouppost_id']."&id=".$id."' style='text-decoration:none;'>Delete</a></div>
-											<hr />
-											
-											</div></div>";
-											
+												<td><div class='picofjoke'><img src='image/members/".$rows['photo']."' width='30' height ='30' alt=''/><br>".$rows['firstname']." ".$rows['lastname']."</div><td>
+												<div class = 'postcon'><br />".$row['posts']."<br /><br /><strong>Last</strong> ".$row['date']."";
+												
+										?>
+										<div style='float:right; margin-top:-10px;'>
+										<form method="post" action="">
+										<input type='hidden' value='<?php echo $row['grouppost_id'];?>' name='cantseeme'/>
+										<select name='accept'>
+											<option selected value=''>----Status----</option>
+											<option value='0'>Not Accepted</option>
+											<option value='1'>Still Considered</option>
+											<option value='2'>Accepted</option>
+										</select>
+										<input type="submit" id="searchbutton2" value="Change" name="status"/>
+										</div>
+										
+										<?php
+										if ($row['status']==2){
+											echo"<div style='float:right; margin-top:-10px; '><img src='images/green.png' width='10' height ='10' alt='' align='right'/></div>";}
+										elseif ($row['status']==1){
+											echo"<div style='float:right; margin-top:-10px; '><img src='images/yellow.jpg' width='10' height ='10' alt='' align='right'/></div>";}
+										else{
+											echo"<div style='float:right; margin-top:-10px;'><img src='images/red.png' width='10' height ='10' alt='' align='right'/></div>";}
+											echo"</form></div>";
+											echo"<br><br><hr /><div style='float:left; margin-left:70px; margin-top:-10px;'><a href='seeall.php?id=".$row['grouppost_id']."' rel='facebox' style='text-decoration:none;'><img src='image/thumbsup.jpg' width='20' height='15' align='center' >(".$allcounts.")</a> <a href='groupcomment.php?id=".$row['grouppost_id']."' rel='facebox' style='text-decoration:none;'>Comments(".$allcount.")</a></div>";
+											echo "<div style='float:right;'><a href='deletegrouppost.php?id=".$row['grouppost_id']."&gid=".$row['group_id']."' style='text-decoration:none;'>Delete</a></div>";
+										
+											//echo "<div style='float:right;'><a href='editgrouppost.php?id=".$row['grouppost_id']."&gid=".$row['group_id']."' style='text-decoration:none;'>Edit</a></div>";
+										
+										echo"</div></div>";
+										echo "</td></tr>";
 									}
-				
-								?>
+									echo "</table>";
+									?>
 								</form>
 							</div>
 							<div class="cleared"></div>
